@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --wa-green: #075e54;
+  --wa-green-light: #128c7e;
+  --wa-teal: #25d366;
+  --wa-bg: #0b141a;
+  --wa-panel: #111b21;
+  --wa-bubble-out: #005c4b;
+  --wa-bubble-in: #202c33;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--wa-bg);
+  color: #e9edef;
+  overflow: hidden;
+}
+
+#root {
+  height: 100dvh;
+}
+
+.privacy-blur {
+  filter: blur(24px) !important;
+  pointer-events: none;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.snap-camera video {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}

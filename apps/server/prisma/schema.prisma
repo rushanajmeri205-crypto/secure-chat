@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum MessageType {
+  text
+  image
+  snap
+}
+
+enum ChatType {
+  direct
+}
+
+model User {
+  id                  String        @id @default(cuid())
+  username            String        @unique
+  passwordHash        String
+  role                Role          @default(user)
+  failedLoginAttempts Int           @default(0)
+  createdAt           DateTime      @default(now())
+  chatMembers         ChatMember[]
+  sentMessages        Message[]     @relation("SentMessages")
+  loginAttempts       LoginAttempt[]
+  adminAuditLogs      AdminAuditLog[] @relation("AdminActions")
+}
+
+model Chat {
+  id        String       @id @default(cuid())
+  type      ChatType     @default(direct)
+  createdAt DateTime     @default(now())
+  members   ChatMember[]
+  messages  Message[]
+}
+
+model ChatMember {
+  id       String    @id @default(cuid())
+  chatId   String
+  userId   String
+  leftAt   DateTime?
+  joinedAt DateTime  @default(now())
+  chat     Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+model Message {
+  id                String    @id @default(cuid())
+  chatId            String
+  senderId          String?
+  senderUsername    String?
+  type              MessageType @default(text)
+  content           String?
+  mediaPath         String?
+  viewOnce          Boolean   @default(false)
+  viewedAt          DateTime?
+  expiresAt         DateTime?
+  deletedForUsersAt DateTime?
+  createdAt         DateTime  @default(now())
+  chat              Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender            User?     @relation("SentMessages", fields: [senderId], references: [id], onDelete: SetNull)
+  adminArchive      MessageAdminArchive?
+  readReceipts      MessageRead[]
+}
+
+model MessageAdminArchive {
+  id        String   @id @default(cuid())
+  messageId String   @unique
+  snapshot  Json
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String?
+  username  String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  admin     User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model CaptureEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  chatId    String?
+  eventType String
+  createdAt DateTime @default(now())
+}

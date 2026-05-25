@@ -1,0 +1,17 @@
+{
+  "name": "secure-chat",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @secure-chat/server\" \"npm run dev -w @secure-chat/web\"",
+    "build": "npm run build -w @secure-chat/server && npm run build -w @secure-chat/web",
+    "db:up": "docker compose up -d",
+    "db:migrate": "npm run db:migrate -w @secure-chat/server",
+    "db:seed": "npm run db:seed -w @secure-chat/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
