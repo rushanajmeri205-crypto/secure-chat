@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = "https://secure-chat-smd4.onrender.com/api";
 
 async function request<T>(
   path: string,
