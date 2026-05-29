@@ -25,15 +25,22 @@ const server = http.createServer(app);
 const io = setupSocket(server);
 setMessageIo(io);
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
 app.use(
   cors({
     origin: CLIENT_URL,
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
+
 getUploadDir();
 
 app.use("/api/auth", authRouter);
@@ -42,17 +49,19 @@ app.use("/api/chats", chatsRouter);
 app.use("/api/chats", messagesRouter);
 app.use("/api/media", mediaRouter);
 
-if (process.env.NODE_ENV === "production") {
-  const webDist = path.join(__dirname, "../../web/dist");
-  app.use(express.static(webDist));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(webDist, "index.html"));
-  });
-}
-
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
+
+if (process.env.NODE_ENV === "production") {
+  const webDist = path.join(__dirname, "../../web/dist");
+
+  app.use(express.static(webDist));
+
+  app.get("/*path", (_req, res) => {
+    res.sendFile(path.join(webDist, "index.html"));
+  });
+}
 
 startExpireJob();
 
