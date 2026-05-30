@@ -1,4 +1,5 @@
 import type { Message } from "../lib/api";
+import { isEmojiOnlyMessage } from "../lib/emoji";
 
 interface ChatBubbleProps {
   message: Message;
@@ -16,6 +17,9 @@ export function ChatBubble({ message, onViewSnap }: ChatBubbleProps) {
     minute: "2-digit",
   });
 
+  const emojiOnly =
+    message.type === "text" && isEmojiOnlyMessage(message.content);
+
   return (
     <div className={`flex mb-1 ${message.isOwn ? "justify-end" : "justify-start"}`}>
       <div
@@ -28,7 +32,11 @@ export function ChatBubble({ message, onViewSnap }: ChatBubbleProps) {
         )}
 
         {message.type === "text" && (
-          <p className="text-[#e9edef] text-[15px] break-words whitespace-pre-wrap">
+          <p
+            className={`text-[#e9edef] break-words whitespace-pre-wrap ${
+              emojiOnly ? "text-[2.5rem] leading-tight" : "text-[15px]"
+            }`}
+          >
             {message.content}
           </p>
         )}

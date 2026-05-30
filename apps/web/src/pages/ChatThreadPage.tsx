@@ -4,6 +4,7 @@ import { api, type Message } from "../lib/api";
 import { ChatBubble } from "../components/ChatBubble";
 import { CameraCapture } from "../components/CameraCapture";
 import { PrivacyOverlay } from "../components/PrivacyOverlay";
+import { EmojiPickerPanel } from "../components/EmojiPickerPanel";
 import { usePrivacyGuard } from "../hooks/usePrivacyGuard";
 import { useSocket, joinChat, leaveChatRoom, emitTyping } from "../hooks/useSocket";
 
@@ -14,6 +15,7 @@ export function ChatThreadPage() {
   const [text, setText] = useState("");
   const [title, setTitle] = useState("Chat");
   const [showCamera, setShowCamera] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const [ephemeral, setEphemeral] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,7 @@ export function ChatThreadPage() {
     if (!text.trim() || !chatId) return;
     const content = text.trim();
     setText("");
+    setShowEmojiPicker(false);
     emitTyping(chatId, false);
     await api.sendMessage(chatId, {
       type: "text",
@@ -109,6 +112,15 @@ export function ChatThreadPage() {
     emitTyping(chatId, true);
     clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => emitTyping(chatId, false), 1500);
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setText((prev) => prev + emoji);
+    if (chatId) {
+      emitTyping(chatId, true);
+      clearTimeout(typingTimeout.current);
+      typingTimeout.current = setTimeout(() => emitTyping(chatId, false), 1500);
+    }
   };
 
   const handleSnapCapture = async (blob: Blob) => {
@@ -177,42 +189,60 @@ export function ChatThreadPage() {
         <div ref={bottomRef} />
       </div>
 
-      <form
-        onSubmit={handleSend}
-        className="bg-[var(--wa-panel)] px-2 py-2 flex items-center gap-2 shrink-0 border-t border-[#222d34]"
-      >
-        <button
-          type="button"
-          onClick={() => setShowCamera(true)}
-          className="w-10 h-10 rounded-full bg-[#202c33] text-xl flex items-center justify-center shrink-0"
-          aria-label="Camera"
-        >
-          📷
-        </button>
-        <label className="flex items-center gap-1 text-xs text-[#8696a0] shrink-0">
-          <input
-            type="checkbox"
-            checked={ephemeral}
-            onChange={(e) => setEphemeral(e.target.checked)}
-            className="rounded"
-          />
-          24h
-        </label>
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => handleTyping(e.target.value)}
-          placeholder="Message"
-          className="flex-1 px-4 py-2 rounded-full bg-[#202c33] text-[#e9edef] border-none focus:outline-none"
+      <div className="relative shrink-0 border-t border-[#222d34] bg-[var(--wa-panel)]">
+        <EmojiPickerPanel
+          open={showEmojiPicker}
+          onClose={() => setShowEmojiPicker(false)}
+          onSelect={handleEmojiSelect}
         />
-        <button
-          type="submit"
-          disabled={!text.trim()}
-          className="w-10 h-10 rounded-full bg-[var(--wa-teal)] text-white flex items-center justify-center disabled:opacity-40 shrink-0"
+
+        <form
+          onSubmit={handleSend}
+          className="px-2 py-2 flex items-center gap-2"
         >
-          ➤
-        </button>
-      </form>
+          <button
+            type="button"
+            onClick={() => setShowCamera(true)}
+            className="w-10 h-10 rounded-full bg-[#202c33] text-xl flex items-center justify-center shrink-0"
+            aria-label="Camera"
+          >
+            📷
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker((v) => !v)}
+            className={`w-10 h-10 rounded-full text-xl flex items-center justify-center shrink-0 ${
+              showEmojiPicker ? "bg-[var(--wa-teal)]" : "bg-[#202c33]"
+            }`}
+            aria-label="Emoji"
+          >
+            😊
+          </button>
+          <label className="flex items-center gap-1 text-xs text-[#8696a0] shrink-0">
+            <input
+              type="checkbox"
+              checked={ephemeral}
+              onChange={(e) => setEphemeral(e.target.checked)}
+              className="rounded"
+            />
+            24h
+          </label>
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => handleTyping(e.target.value)}
+            placeholder="Message"
+            className="flex-1 px-4 py-2 rounded-full bg-[#202c33] text-[#e9edef] border-none focus:outline-none text-[15px]"
+          />
+          <button
+            type="submit"
+            disabled={!text.trim()}
+            className="w-10 h-10 rounded-full bg-[var(--wa-teal)] text-white flex items-center justify-center disabled:opacity-40 shrink-0"
+          >
+            ➤
+          </button>
+        </form>
+      </div>
 
       {showCamera && (
         <CameraCapture onCapture={handleSnapCapture} onClose={() => setShowCamera(false)} />
