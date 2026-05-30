@@ -35,15 +35,21 @@ export function ChatMessageInput({
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Enter") return;
+    e.preventDefault();
 
-    // Mobile / touch: Enter adds a new line (keyboard return key)
-    if (isCoarsePointer()) return;
-
-    // Desktop: Enter sends, Shift+Enter new line
-    if (!e.shiftKey) {
-      e.preventDefault();
+    if (!isCoarsePointer() && !e.shiftKey) {
       if (value.trim()) onSend();
+      return;
     }
+
+    const el = e.currentTarget;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const newVal = value.slice(0, start) + "\n" + value.slice(end);
+    onChange(newVal);
+    requestAnimationFrame(() => {
+      el.selectionStart = el.selectionEnd = start + 1;
+    });
   };
 
   return (
