@@ -86,11 +86,10 @@ authRouter.post("/login", loginLimiter, async (req, res) => {
     role: user.role,
   });
 
-  const isProd = process.env.NODE_ENV === "production";
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isProd,
-    sameSite: "strict",
+    secure: true,
+    sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -109,10 +108,12 @@ authRouter.get("/me", requireAuth, async (req, res) => {
     where: { id: req.user!.userId },
     select: { id: true, username: true, role: true },
   });
+
   if (!user) {
     res.status(401).json({ error: "User not found" });
     return;
   }
+
   res.json({ user });
 });
 
@@ -122,5 +123,6 @@ authRouter.get("/users", requireAuth, async (req, res) => {
     select: { id: true, username: true },
     orderBy: { username: "asc" },
   });
+
   res.json({ users });
 });
