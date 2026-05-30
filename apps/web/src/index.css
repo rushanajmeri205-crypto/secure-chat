@@ -41,3 +41,18 @@ body {
   width: 100%;
   height: 100%;
 }
+
+.chat-input {
+  resize: none;
+  overflow-y: auto;
+  field-sizing: content;
+}
+
+.chat-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-input::-webkit-scrollbar-thumb {
+  background: #3b4a54;
+  border-radius: 4px;
+}

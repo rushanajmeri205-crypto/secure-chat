@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef, useCallback, type FormEvent } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api, type Message } from "../lib/api";
 import { ChatBubble } from "../components/ChatBubble";
 import { CameraCapture } from "../components/CameraCapture";
 import { PrivacyOverlay } from "../components/PrivacyOverlay";
 import { EmojiPickerPanel } from "../components/EmojiPickerPanel";
+import { ChatMessageInput } from "../components/ChatMessageInput";
 import { usePrivacyGuard } from "../hooks/usePrivacyGuard";
 import { useSocket, joinChat, leaveChatRoom, emitTyping } from "../hooks/useSocket";
 
@@ -91,8 +92,7 @@ export function ChatThreadPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSend = async () => {
     if (!text.trim() || !chatId) return;
     const content = text.trim();
     setText("");
@@ -197,13 +197,16 @@ export function ChatThreadPage() {
         />
 
         <form
-          onSubmit={handleSend}
-          className="px-2 py-2 flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="px-2 py-2 flex items-end gap-2"
         >
           <button
             type="button"
             onClick={() => setShowCamera(true)}
-            className="w-10 h-10 rounded-full bg-[#202c33] text-xl flex items-center justify-center shrink-0"
+            className="w-10 h-10 self-end mb-0.5 rounded-full bg-[#202c33] text-xl flex items-center justify-center shrink-0"
             aria-label="Camera"
           >
             📷
@@ -211,7 +214,7 @@ export function ChatThreadPage() {
           <button
             type="button"
             onClick={() => setShowEmojiPicker((v) => !v)}
-            className={`w-10 h-10 rounded-full text-xl flex items-center justify-center shrink-0 ${
+            className={`w-10 h-10 self-end mb-0.5 rounded-full text-xl flex items-center justify-center shrink-0 ${
               showEmojiPicker ? "bg-[var(--wa-teal)]" : "bg-[#202c33]"
             }`}
             aria-label="Emoji"
@@ -227,17 +230,16 @@ export function ChatThreadPage() {
             />
             24h
           </label>
-          <input
-            type="text"
+          <ChatMessageInput
             value={text}
-            onChange={(e) => handleTyping(e.target.value)}
+            onChange={handleTyping}
+            onSend={handleSend}
             placeholder="Message"
-            className="flex-1 px-4 py-2 rounded-full bg-[#202c33] text-[#e9edef] border-none focus:outline-none text-[15px]"
           />
           <button
             type="submit"
             disabled={!text.trim()}
-            className="w-10 h-10 rounded-full bg-[var(--wa-teal)] text-white flex items-center justify-center disabled:opacity-40 shrink-0"
+            className="w-10 h-10 mb-0.5 rounded-full bg-[var(--wa-teal)] text-white flex items-center justify-center disabled:opacity-40 shrink-0"
           >
             ➤
           </button>
